@@ -132,7 +132,18 @@ const calcTotal = (b) => {
        + (+b.tiket?.pergi||0) + (+b.tiket?.pulang||0)
        + (b.tambahanLain||[]).reduce((s,v)=>s+(+v?.jumlah||0),0);
 };
-const HARI = ['Hari Pertama','Hari Kedua','Hari Ketiga','Hari Keempat','Hari Kelima','Hari Keenam','Hari Ketujuh'];
+const HARI  = ['Hari Pertama','Hari Kedua','Hari Ketiga','Hari Keempat','Hari Kelima','Hari Keenam','Hari Ketujuh'];
+const BULAN = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+const formatPeriode = (from, to) => {
+  if (!from) return '';
+  const d1 = new Date(from + 'T00:00:00');
+  const [tgl1, bln1, thn] = [d1.getDate(), BULAN[d1.getMonth()], d1.getFullYear()];
+  if (!to) return `${tgl1} ${bln1} ${thn}`;
+  const d2 = new Date(to + 'T00:00:00');
+  const [tgl2, bln2] = [d2.getDate(), BULAN[d2.getMonth()]];
+  return bln1 === bln2 ? `${tgl1}–${tgl2} ${bln1} ${thn}` : `${tgl1} ${bln1} – ${tgl2} ${bln2} ${thn}`;
+};
+const getPeriode = (trip) => trip.periodeFrom ? formatPeriode(trip.periodeFrom, trip.periodeTo) : (trip.periode || '');
 const DOK_ITEMS = [
   { key: 'suratUndangan',      label: 'Surat Undangan',                side: 'L' },
   { key: 'suratPerintahTugas', label: 'Surat Perintah Tugas',          side: 'L' },
@@ -145,14 +156,14 @@ const DOK_ITEMS = [
 ];
 const BLANK_DOK  = Object.fromEntries(DOK_ITEMS.map(d => [d.key, false]));
 const BLANK_FORM = {
-  nama: '', periode: '', kotaTujuan: '', status: 'proses',
+  nama: '', periodeFrom: '', periodeTo: '', kotaTujuan: '', status: 'proses',
   catatan: 'Semua biaya perjalanan dinas wajib melampirkan bukti dukung',
   dokumen: { ...BLANK_DOK },
   biaya: { transportasiPergi: { taksi: 0, tol: 0 }, transportasiPulang: { taksi: 0, tol: 0 }, penginapan: [0], tiket: { pergi: 0, pulang: 0 }, tambahanLain: [] },
 };
 const SEED = [
   {
-    id: uid(), nama: 'Akram Yonda Putra, S.T', periode: '18–21 Mei 2026',
+    id: uid(), nama: 'Akram Yonda Putra, S.T', periodeFrom: '2026-05-18', periodeTo: '2026-05-21',
     kotaTujuan: 'Dinas PU Provinsi Sumatera Selatan', status: 'selesai',
     catatan: 'Semua biaya perjalanan dinas wajib melampirkan bukti dukung',
     dokumen: { suratUndangan:true, suratPerintahTugas:true, laporanPerjalanan:true, dokumentasiPergi:true, buktiPenginapan:true, strukTaksi:true, strukTol:false, dokumentasiBukti:true },
@@ -160,7 +171,7 @@ const SEED = [
     createdAt: new Date().toISOString(),
   },
   {
-    id: uid(), nama: 'Amiruddin Yusuf, S.E, M.Ak', periode: '18–21 Mei 2026',
+    id: uid(), nama: 'Amiruddin Yusuf, S.E, M.Ak', periodeFrom: '2026-05-18', periodeTo: '2026-05-21',
     kotaTujuan: 'Dinas PU Provinsi Sumatera Selatan', status: 'selesai',
     catatan: 'Semua biaya perjalanan dinas wajib melampirkan bukti dukung',
     dokumen: { suratUndangan:true, suratPerintahTugas:true, laporanPerjalanan:true, dokumentasiPergi:true, buktiPenginapan:true, strukTaksi:true, strukTol:false, dokumentasiBukti:true },
@@ -321,7 +332,7 @@ const Dashboard = ({ data, go }) => {
                 <div className="flex-1 min-w-0">
                   <div className="text-sm font-semibold text-gray-700 truncate">{trip.nama}</div>
                   <div className="flex gap-3 text-[11px] text-gray-400 mt-0.5">
-                    <span className="flex items-center gap-1"><I.Calendar c="w-3 h-3" />{trip.periode}</span>
+                    <span className="flex items-center gap-1"><I.Calendar c="w-3 h-3" />{getPeriode(trip)}</span>
                     <span className="hidden sm:flex items-center gap-1"><I.MapPin c="w-3 h-3" />{trip.kotaTujuan}</span>
                   </div>
                 </div>
@@ -386,7 +397,7 @@ const TripList = ({ data, go, onDelete }) => {
                       <Badge s={trip.status} />
                     </div>
                     <div className="flex flex-wrap gap-x-4 gap-y-1 text-[12px] text-gray-400 mb-3">
-                      <span className="flex items-center gap-1"><I.Calendar c="w-3 h-3" />{trip.periode}</span>
+                      <span className="flex items-center gap-1"><I.Calendar c="w-3 h-3" />{getPeriode(trip)}</span>
                       <span className="flex items-center gap-1"><I.MapPin c="w-3 h-3" />{trip.kotaTujuan}</span>
                       <span className="flex items-center gap-1"><I.File c="w-3 h-3" />{dokOk}/{dokAll} dokumen</span>
                     </div>
@@ -433,12 +444,25 @@ const TripList = ({ data, go, onDelete }) => {
 /* ── FORM HELPERS — harus di luar TripForm agar fokus input tidak hilang saat re-render ── */
 const inputCls = "w-full bg-white border border-gray-300 rounded-lg px-3 py-2.5 text-sm text-gray-700 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-sky-300 transition";
 const FLbl = ({ children }) => <label className="block text-[11px] font-semibold text-gray-500 mb-1 uppercase tracking-wide">{children}</label>;
+const NumericInput = ({ value, onChange, className }) => {
+  const [focused, setFocused] = React.useState(false);
+  const displayVal = focused
+    ? (value ? String(value) : '')
+    : (value ? Number(value).toLocaleString('id-ID') : '');
+  return (
+    <input type="text" value={displayVal}
+      onFocus={() => setFocused(true)}
+      onBlur={() => setFocused(false)}
+      onChange={e => { const raw = e.target.value.replace(/[^0-9]/g,''); onChange(raw ? +raw : 0); }}
+      className={className} />
+  );
+};
 const FNumIn = ({ label, value, onChange }) => (
   <div>
     {label && <FLbl>{label}</FLbl>}
     <div className="relative">
       <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs font-medium">Rp</span>
-      <input type="number" value={value||''} onChange={e => onChange(+e.target.value)}
+      <NumericInput value={value} onChange={onChange}
         className="w-full bg-white border border-gray-300 rounded-lg pl-8 pr-3 py-2.5 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-sky-300 transition" />
     </div>
   </div>
@@ -487,7 +511,7 @@ const TripForm = ({ data, id, onSave, go }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (!form.nama.trim() || !form.periode.trim() || !form.kotaTujuan.trim()) {
+    if (!form.nama.trim() || (!form.periodeFrom && !form.periode) || !form.kotaTujuan.trim()) {
       alert('Nama, Periode, dan Kota Tujuan wajib diisi!');
       return;
     }
@@ -516,7 +540,19 @@ const TripForm = ({ data, id, onSave, go }) => {
             </div>
             <div>
               <FLbl>Periode *</FLbl>
-              <input type="text" value={form.periode} onChange={e=>set('periode',e.target.value)} placeholder="18–21 Mei 2026" className={inputCls} />
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <div className="text-[10px] text-gray-400 mb-1">Tanggal Mulai</div>
+                  <input type="date" value={form.periodeFrom||''} onChange={e=>set('periodeFrom',e.target.value)} className={inputCls} />
+                </div>
+                <div>
+                  <div className="text-[10px] text-gray-400 mb-1">Tanggal Selesai</div>
+                  <input type="date" value={form.periodeTo||''} onChange={e=>set('periodeTo',e.target.value)} className={inputCls} />
+                </div>
+              </div>
+              {form.periodeFrom && (
+                <div className="text-xs text-sky-600 mt-1.5 font-medium">{formatPeriode(form.periodeFrom, form.periodeTo)}</div>
+              )}
             </div>
             <div>
               <FLbl>Status</FLbl>
@@ -580,8 +616,8 @@ const TripForm = ({ data, id, onSave, go }) => {
                   <div className="text-xs text-gray-400 w-24 flex-shrink-0">{HARI[i]||`Hari ke-${i+1}`}</div>
                   <div className="flex-1 relative">
                     <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs font-medium">Rp</span>
-                    <input type="number" value={val||''} onChange={e=>{
-                      const arr=[...form.biaya.penginapan]; arr[i]=+e.target.value; set('biaya.penginapan',arr);
+                    <NumericInput value={val} onChange={v=>{
+                      const arr=[...form.biaya.penginapan]; arr[i]=v; set('biaya.penginapan',arr);
                     }} className="w-full bg-white border border-gray-300 rounded-lg pl-8 pr-3 py-2 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-sky-300" />
                   </div>
                   {form.biaya.penginapan.length > 1 && (
@@ -624,8 +660,8 @@ const TripForm = ({ data, id, onSave, go }) => {
                         className="flex-1 bg-white border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-700 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-sky-300" />
                       <div className="w-36 relative">
                         <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs font-medium">Rp</span>
-                        <input type="number" value={item.jumlah||''} onChange={e=>{
-                          const arr=JSON.parse(JSON.stringify(form.biaya.tambahanLain)); arr[i].jumlah=+e.target.value; set('biaya.tambahanLain',arr);
+                        <NumericInput value={item.jumlah} onChange={v=>{
+                          const arr=JSON.parse(JSON.stringify(form.biaya.tambahanLain)); arr[i].jumlah=v; set('biaya.tambahanLain',arr);
                         }} className="w-full bg-white border border-gray-300 rounded-lg pl-8 pr-3 py-2 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-sky-300" />
                       </div>
                       <button type="button" onClick={() => set('biaya.tambahanLain',form.biaya.tambahanLain.filter((_,j)=>j!==i))}
@@ -744,7 +780,7 @@ const TripDetail = ({ data, id, go }) => {
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4">
           {[
             { Icon:I.User,     label:'Nama',    val:trip.nama },
-            { Icon:I.Calendar, label:'Periode', val:trip.periode },
+            { Icon:I.Calendar, label:'Periode', val:getPeriode(trip) },
             { Icon:I.MapPin,   label:'Tujuan',  val:trip.kotaTujuan },
           ].map(({ Icon, label, val }) => (
             <div key={label} className="flex items-start gap-2">
@@ -765,7 +801,7 @@ const TripDetail = ({ data, id, go }) => {
       </div>
 
       {/* Dokumen */}
-      <div className="no-print card p-5 shadow-sm">
+      <div className="card p-5 shadow-sm">
         <h3 className="font-semibold text-gray-700 text-sm mb-4 flex items-center gap-2 pb-3 border-b border-gray-100">
           <span className="no-print"><I.File c="w-4 h-4 text-sky-500" /></span> Kelengkapan Dokumen
         </h3>
@@ -855,7 +891,7 @@ const TripDetail = ({ data, id, go }) => {
       <div className="card p-5 shadow-sm">
         <div className="flex justify-end">
           <div className="text-center min-w-52">
-            <div className="text-sm text-gray-500 mb-14">Jakarta, {trip.periode}</div>
+            <div className="text-sm text-gray-500 mb-14">Jakarta, {getPeriode(trip)}</div>
             <div className="text-xs text-gray-400 mb-1">Pelaksana Perjalanan Dinas</div>
             <div className="border-t border-gray-300 pt-1 text-sm font-semibold text-gray-700">({trip.nama})</div>
           </div>
