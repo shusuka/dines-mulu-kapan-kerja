@@ -41,36 +41,53 @@
     .emoji-icon {}
     .print-only { display: none; }
     @media print {
-      @page { size: A4 portrait; margin: 1.4cm 1.6cm; }
-      .no-print  { display: none !important; }
-      svg        { display: none !important; }
+      @page { size: A4 portrait; margin: 1.8cm 2cm; }
+
+      /* reset layout — remove sidebar offset */
+      .no-print   { display: none !important; }
+      svg         { display: none !important; }
       .emoji-icon { display: none !important; }
       .print-only { display: inline !important; }
-      body { background: white !important; font-size: 9pt !important; color: #111 !important; }
+
+      body, html { background: white !important; margin: 0 !important; padding: 0 !important; }
+      body > #root > div { display: block !important; }
+      main { margin-left: 0 !important; padding: 0 !important; width: 100% !important; max-width: 100% !important; }
+
+      /* print-area fills the A4 width */
+      .print-area { max-width: 100% !important; width: 100% !important; padding-bottom: 0 !important; }
+
       /* flat cards */
-      .card { box-shadow: none !important; border: 1px solid #bbb !important; border-radius: 4px !important; background: white !important; }
-      /* tight spacing */
-      .print-area { max-width: 100% !important; }
-      .print-area > .space-y-4 > * + *,
-      .print-area > * + * { margin-top: 5pt !important; }
-      .print-area .p-5, .print-area .p-6 { padding: 7pt !important; }
-      .print-area .pb-3 { padding-bottom: 4pt !important; }
-      .print-area .mb-4, .print-area .mb-5 { margin-bottom: 5pt !important; }
-      .print-area .gap-5 { gap: 6pt !important; }
-      .print-area .gap-3 { gap: 5pt !important; }
-      .print-area .space-y-2 > * + * { margin-top: 2pt !important; }
-      .print-area .py-2\.5 { padding-top: 3pt !important; padding-bottom: 3pt !important; }
-      .print-area .py-1\.5 { padding-top: 1.5pt !important; padding-bottom: 1.5pt !important; }
-      .print-area .pt-4    { padding-top: 4pt !important; }
-      .print-area .pb-2    { padding-bottom: 2pt !important; }
-      .print-area .min-w-52 { min-width: 0 !important; }
-      .print-area .mb-14   { margin-bottom: 24pt !important; }
-      /* flatten gradient header */
-      .bg-gradient-to-br  { background: #f0f4f8 !important; }
-      /* font sizes */
-      .text-xl { font-size: 11pt !important; }
-      .text-sm { font-size: 9pt  !important; }
-      .text-xs { font-size: 8pt  !important; }
+      .card {
+        box-shadow: none !important;
+        border: 1px solid #ccc !important;
+        border-radius: 4px !important;
+        background: white !important;
+        page-break-inside: avoid;
+      }
+
+      /* normalize spacing to A4 proportions */
+      .print-area > * + * { margin-top: 8pt !important; }
+      .p-5, .p-6          { padding: 10pt !important; }
+      .pb-3               { padding-bottom: 6pt !important; }
+      .mb-4, .mb-5        { margin-bottom: 6pt !important; }
+      .mb-14              { margin-bottom: 32pt !important; }
+      .gap-5              { gap: 10pt !important; }
+      .gap-3              { gap: 8pt !important; }
+      .space-y-2 > * + * { margin-top: 4pt !important; }
+      .py-2\.5            { padding-top: 5pt !important; padding-bottom: 5pt !important; }
+      .py-1\.5            { padding-top: 3pt !important; padding-bottom: 3pt !important; }
+      .pt-4               { padding-top: 6pt !important; }
+
+      /* flatten gradient */
+      .bg-gradient-to-br { background: #f0f4f8 !important; }
+
+      /* readable font size */
+      body        { font-size: 10pt !important; color: #111 !important; }
+      .text-sm    { font-size: 10pt !important; }
+      .text-xs    { font-size: 8.5pt !important; }
+      .text-xl    { font-size: 13pt !important; }
+      .font-extrabold { font-weight: 700 !important; }
+
       * { -webkit-print-color-adjust: exact; color-adjust: exact; }
     }
   </style>
