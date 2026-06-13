@@ -41,9 +41,9 @@
     .emoji-icon {}
     .print-only { display: none; }
     @media print {
-      @page { size: A4 portrait; margin: 1.8cm 2cm; }
+      @page { size: A4 portrait; margin: 1cm 1.5cm; }
 
-      /* reset layout — remove sidebar offset */
+      /* reset layout */
       .no-print   { display: none !important; }
       svg         { display: none !important; }
       .emoji-icon { display: none !important; }
@@ -53,39 +53,48 @@
       body > #root > div { display: block !important; }
       main { margin-left: 0 !important; padding: 0 !important; width: 100% !important; max-width: 100% !important; }
 
-      /* print-area fills the A4 width */
       .print-area { max-width: 100% !important; width: 100% !important; padding-bottom: 0 !important; }
 
       /* flat cards */
       .card {
         box-shadow: none !important;
         border: 1px solid #ccc !important;
-        border-radius: 4px !important;
+        border-radius: 3px !important;
         background: white !important;
         page-break-inside: avoid;
       }
 
-      /* normalize spacing to A4 proportions */
-      .print-area > * + * { margin-top: 8pt !important; }
-      .p-5, .p-6          { padding: 10pt !important; }
-      .pb-3               { padding-bottom: 6pt !important; }
-      .mb-4, .mb-5        { margin-bottom: 6pt !important; }
-      .mb-14              { margin-bottom: 32pt !important; }
-      .gap-5              { gap: 10pt !important; }
-      .gap-3              { gap: 8pt !important; }
-      .space-y-2 > * + * { margin-top: 4pt !important; }
-      .py-2\.5            { padding-top: 5pt !important; padding-bottom: 5pt !important; }
-      .py-1\.5            { padding-top: 3pt !important; padding-bottom: 3pt !important; }
-      .pt-4               { padding-top: 6pt !important; }
+      /* compact spacing — fit 1 page */
+      .print-area > * + * { margin-top: 4pt !important; }
+      .p-5, .p-6          { padding: 6pt !important; }
+      .pb-3               { padding-bottom: 3pt !important; }
+      .mb-4, .mb-5        { margin-bottom: 3pt !important; }
+      .mb-14              { margin-bottom: 18pt !important; }
+      .mb-1               { margin-bottom: 1pt !important; }
+      .gap-5              { gap: 6pt !important; }
+      .gap-3              { gap: 5pt !important; }
+      .gap-2              { gap: 3pt !important; }
+      .space-y-4 > * + *    { margin-top: 4pt !important; }
+      .space-y-2 > * + *    { margin-top: 2pt !important; }
+      .space-y-2\.5 > * + * { margin-top: 2pt !important; }
+      .py-2\.5 { padding-top: 2pt !important; padding-bottom: 2pt !important; }
+      .py-1\.5 { padding-top: 1.5pt !important; padding-bottom: 1.5pt !important; }
+      .pt-4    { padding-top: 3pt !important; }
+      .pt-3    { padding-top: 3pt !important; }
 
-      /* flatten gradient */
-      .bg-gradient-to-br { background: #f0f4f8 !important; }
+      /* force multi-column grid in print */
+      .sm\:grid-cols-2 { grid-template-columns: repeat(2,minmax(0,1fr)) !important; }
+      .sm\:grid-cols-3 { grid-template-columns: repeat(3,minmax(0,1fr)) !important; }
 
-      /* readable font size */
-      body        { font-size: 10pt !important; color: #111 !important; }
-      .text-sm    { font-size: 10pt !important; }
-      .text-xs    { font-size: 8.5pt !important; }
-      .text-xl    { font-size: 13pt !important; }
+      /* flatten gradient header */
+      .bg-gradient-to-br { background: #eef4fb !important; }
+
+      /* compact font */
+      body            { font-size: 8.5pt !important; color: #111 !important; }
+      .text-sm        { font-size: 8.5pt !important; }
+      .text-xs        { font-size: 7pt !important; }
+      .text-xl        { font-size: 11pt !important; }
+      .text-lg        { font-size: 10pt !important; }
       .font-extrabold { font-weight: 700 !important; }
 
       * { -webkit-print-color-adjust: exact; color-adjust: exact; }
@@ -819,7 +828,7 @@ const TripDetail = ({ data, id, go }) => {
                         : <I.X c="w-3 h-3 text-gray-400" />}
                     </div>
                     <span className="print-only font-bold text-gray-700" style={{fontSize:'9pt'}}>
-                      {trip.dokumen[dok.key] ? '[ ✓ ]' : '[    ]'}
+                      {trip.dokumen[dok.key] ? '[ ✓ ]' : '[ X ]'}
                     </span>
                     <span className="text-sm text-gray-700">
                       {dok.label}
@@ -881,7 +890,7 @@ const TripDetail = ({ data, id, go }) => {
 
       {/* Catatan */}
       {trip.catatan && (
-        <div className="card p-5 shadow-sm text-sm">
+        <div className="no-print card p-5 shadow-sm text-sm">
           <div className="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">Catatan</div>
           <div className="text-gray-600">{trip.catatan}</div>
         </div>
