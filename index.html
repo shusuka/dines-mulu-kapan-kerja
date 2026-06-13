@@ -27,7 +27,7 @@
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
     * { box-sizing: border-box; }
-    body { font-family: 'Inter', system-ui, sans-serif; background: #f1f5f9; }
+    body { font-family: 'Inter', system-ui, sans-serif; background: #f1f5f9; overflow-y: scroll; }
     input[type=number]::-webkit-inner-spin-button,
     input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; }
     input[type=number] { -moz-appearance: textfield; }
@@ -754,7 +754,7 @@ const TripDetail = ({ data, id, go }) => {
             </div>
           ))}
         </div>
-        <div className="flex items-center justify-between pt-3 border-t border-sky-200">
+        <div className="no-print flex items-center justify-between pt-3 border-t border-sky-200">
           <div className="text-xs text-gray-500">
             Dokumen: <span className={dokOk===dokAll ? 'text-emerald-600 font-bold' : 'text-amber-600 font-bold'}>{dokOk}/{dokAll} lengkap</span>
           </div>
@@ -763,7 +763,7 @@ const TripDetail = ({ data, id, go }) => {
       </div>
 
       {/* Dokumen */}
-      <div className="card p-5 shadow-sm">
+      <div className="no-print card p-5 shadow-sm">
         <h3 className="font-semibold text-gray-700 text-sm mb-4 flex items-center gap-2 pb-3 border-b border-gray-100">
           <span className="no-print"><I.File c="w-4 h-4 text-sky-500" /></span> Kelengkapan Dokumen
         </h3>
@@ -783,7 +783,7 @@ const TripDetail = ({ data, id, go }) => {
                     <span className="print-only font-bold text-gray-700" style={{fontSize:'9pt'}}>
                       {trip.dokumen[dok.key] ? '[ ✓ ]' : '[    ]'}
                     </span>
-                    <span className={`text-sm ${trip.dokumen[dok.key] ? 'text-gray-700' : 'text-gray-400 line-through'}`}>
+                    <span className="text-sm text-gray-700">
                       {dok.label}
                     </span>
                   </div>
