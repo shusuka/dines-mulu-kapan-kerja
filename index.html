@@ -7,6 +7,8 @@
   <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
   <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = {
@@ -22,6 +24,27 @@
           }
         }
       }
+    }
+  </script>
+  <script>
+    /* ── FIREBASE CONFIG ────────────────────────────────────────────
+       Ganti 6 nilai di bawah dengan config dari:
+       Firebase Console → Project Settings → General → Your apps → Web app → SDK setup
+       Setelah itu aktifkan Firestore:
+         Build → Firestore Database → Create database → Start in test mode
+    ────────────────────────────────────────────────────────────── */
+    const FIREBASE_CONFIG = {
+      apiKey:            "GANTI_API_KEY",
+      authDomain:        "GANTI_PROJECT.firebaseapp.com",
+      projectId:         "GANTI_PROJECT_ID",
+      storageBucket:     "GANTI_PROJECT.firebasestorage.app",
+      messagingSenderId: "GANTI_SENDER_ID",
+      appId:             "GANTI_APP_ID",
+    };
+    const _fbConfigured = !FIREBASE_CONFIG.apiKey.startsWith("GANTI");
+    if (_fbConfigured) {
+      firebase.initializeApp(FIREBASE_CONFIG);
+      window.__db = firebase.firestore();
     }
   </script>
   <style>
@@ -912,29 +935,68 @@ const TripDetail = ({ data, id, go }) => {
 
 /* ── APP ── */
 const App = () => {
-  const [data, setData] = useState(() => {
-    try { const s = localStorage.getItem('pfid_v1'); return s ? JSON.parse(s) : SEED; }
-    catch { return SEED; }
-  });
-  const [page, setPage] = useState({ name:'dashboard' });
+  const [data,    setData]    = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [fbError, setFbError] = useState(null);
+  const [page,    setPage]    = useState({ name:'dashboard' });
 
-  useEffect(() => { localStorage.setItem('pfid_v1', JSON.stringify(data)); }, [data]);
+  useEffect(() => {
+    /* fallback: Firebase belum dikonfigurasi → pakai localStorage */
+    if (!window.__db) {
+      try { const s = localStorage.getItem('pfid_v1'); setData(s ? JSON.parse(s) : SEED); }
+      catch { setData(SEED); }
+      setLoading(false);
+      return;
+    }
 
-  const onSave = (trip) => setData(prev => {
-    const idx = prev.findIndex(d => d.id === trip.id);
-    if (idx >= 0) { const n=[...prev]; n[idx]=trip; return n; }
-    return [...prev, trip];
-  });
-  const onDelete = (id) => setData(prev => prev.filter(d => d.id !== id));
+    const db = window.__db;
+    const unsub = db.collection('trips').orderBy('createdAt','asc').onSnapshot(
+      snap => {
+        if (snap.empty) SEED.forEach(t => db.collection('trips').doc(t.id).set(t));
+        setData(snap.docs.map(d => d.data()));
+        setLoading(false);
+        setFbError(null);
+      },
+      err => { console.error('Firestore:', err); setFbError(err.message); setLoading(false); }
+    );
+    return () => unsub();
+  }, []);
+
+  /* tulis ke Firestore ATAU localStorage jika belum dikonfigurasi */
+  const onSave = (trip) => {
+    if (window.__db) {
+      window.__db.collection('trips').doc(trip.id).set(trip);
+    } else {
+      setData(prev => {
+        const idx = prev.findIndex(d => d.id === trip.id);
+        const next = idx >= 0 ? prev.map((d,i) => i===idx ? trip : d) : [...prev, trip];
+        localStorage.setItem('pfid_v1', JSON.stringify(next));
+        return next;
+      });
+    }
+  };
+
+  const onDelete = (id) => {
+    if (window.__db) {
+      window.__db.collection('trips').doc(id).delete();
+    } else {
+      setData(prev => {
+        const next = prev.filter(d => d.id !== id);
+        localStorage.setItem('pfid_v1', JSON.stringify(next));
+        return next;
+      });
+    }
+  };
+
   const go = (p) => setPage(p);
 
   const content = () => {
     switch (page.name) {
-      case 'dashboard': return <Dashboard data={data} go={go} />;
-      case 'list':      return <TripList  data={data} go={go} onDelete={onDelete} />;
-      case 'form':      return <TripForm  data={data} id={page.id} onSave={onSave} go={go} />;
+      case 'dashboard': return <Dashboard  data={data} go={go} />;
+      case 'list':      return <TripList   data={data} go={go} onDelete={onDelete} />;
+      case 'form':      return <TripForm   data={data} id={page.id} onSave={onSave} go={go} />;
       case 'detail':    return <TripDetail data={data} id={page.id} go={go} />;
-      default:          return <Dashboard data={data} go={go} />;
+      default:          return <Dashboard  data={data} go={go} />;
     }
   };
 
@@ -942,7 +1004,33 @@ const App = () => {
     <div className="flex min-h-screen" style={{background:'#f1f5f9'}}>
       <Sidebar page={page} go={go} />
       <main className="ml-56 flex-1 p-6 lg:p-8 overflow-x-hidden min-h-screen">
-        {content()}
+        {/* banner status Firebase */}
+        {window.__db && !loading && !fbError && (
+          <div className="no-print mb-4 flex items-center gap-2 bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-medium px-3 py-2 rounded-xl">
+            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse flex-shrink-0" />
+            Tersinkron ke Firebase — semua perubahan langsung terlihat oleh semua pengguna
+          </div>
+        )}
+        {!window.__db && !loading && (
+          <div className="no-print mb-4 flex items-center gap-2 bg-amber-50 border border-amber-200 text-amber-700 text-xs font-medium px-3 py-2 rounded-xl">
+            <span className="w-2 h-2 rounded-full bg-amber-400 flex-shrink-0" />
+            Mode lokal — isi Firebase config di &lt;script&gt; untuk sinkronisasi antar pengguna
+          </div>
+        )}
+        {fbError && (
+          <div className="no-print mb-4 flex items-center gap-2 bg-red-50 border border-red-200 text-red-700 text-xs font-medium px-3 py-2 rounded-xl">
+            <span className="w-2 h-2 rounded-full bg-red-500 flex-shrink-0" />
+            Firebase error: {fbError}
+          </div>
+        )}
+        {loading ? (
+          <div className="flex items-center justify-center min-h-64">
+            <div className="text-center">
+              <I.Plane c="w-10 h-10 mx-auto text-sky-400 animate-float mb-3" />
+              <div className="text-sm text-gray-400 font-medium">Menghubungkan ke Firebase…</div>
+            </div>
+          </div>
+        ) : content()}
       </main>
     </div>
   );
