@@ -1,0 +1,856 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dines Mulu Kapan Kerja ✈️</title>
+  <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          animation: {
+            float: 'float 6s ease-in-out infinite',
+            slidein: 'slidein 0.25s ease-out',
+          },
+          keyframes: {
+            float:   { '0%,100%': { transform: 'translateY(0)' }, '50%': { transform: 'translateY(-10px)' } },
+            slidein: { from: { opacity: '0', transform: 'translateY(14px)' }, to: { opacity: '1', transform: 'translateY(0)' } },
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+    * { box-sizing: border-box; }
+    body { font-family: 'Inter', system-ui, sans-serif; background: #f1f5f9; }
+    input[type=number]::-webkit-inner-spin-button,
+    input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; }
+    input[type=number] { -moz-appearance: textfield; }
+    ::-webkit-scrollbar { width: 5px; height: 5px; }
+    ::-webkit-scrollbar-track { background: #e2e8f0; }
+    ::-webkit-scrollbar-thumb { background: #94a3b8; border-radius: 99px; }
+    ::-webkit-scrollbar-thumb:hover { background: #64748b; }
+    .card { background: #fff; border: 1px solid #e2e8f0; border-radius: 16px; }
+    .card-hover { transition: box-shadow .2s, border-color .2s; }
+    .card-hover:hover { box-shadow: 0 4px 20px rgba(14,165,233,.12); border-color: #bae6fd; }
+    @media print {
+      .no-print { display: none !important; }
+      body { background: white !important; }
+    }
+  </style>
+</head>
+<body class="text-gray-800 min-h-screen">
+<div id="root"></div>
+
+<script type="text/babel">
+const { useState, useEffect, useMemo } = React;
+
+/* ── ICONS ── */
+const I = {
+  Plane:     ({c=""}) => <svg className={c} viewBox="0 0 24 24" fill="currentColor"><path d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5z"/></svg>,
+  Home:      ({c=""}) => <svg className={c} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9,22 9,12 15,12 15,22"/></svg>,
+  List:      ({c=""}) => <svg className={c} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>,
+  Plus:      ({c=""}) => <svg className={c} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>,
+  Edit:      ({c=""}) => <svg className={c} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4z"/></svg>,
+  Trash:     ({c=""}) => <svg className={c} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg>,
+  Eye:       ({c=""}) => <svg className={c} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>,
+  Check:     ({c=""}) => <svg className={c} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>,
+  X:         ({c=""}) => <svg className={c} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>,
+  ArrowLeft: ({c=""}) => <svg className={c} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>,
+  MapPin:    ({c=""}) => <svg className={c} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>,
+  Calendar:  ({c=""}) => <svg className={c} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>,
+  User:      ({c=""}) => <svg className={c} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>,
+  File:      ({c=""}) => <svg className={c} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14,2 14,8 20,8"/></svg>,
+  Print:     ({c=""}) => <svg className={c} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>,
+  Wallet:    ({c=""}) => <svg className={c} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 12V7H5a2 2 0 010-4h14v4"/><path d="M3 5v14a2 2 0 002 2h16v-5"/><path d="M18 12a2 2 0 000 4h4v-4z"/></svg>,
+  TrendUp:   ({c=""}) => <svg className={c} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>,
+  Search:    ({c=""}) => <svg className={c} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>,
+  Luggage:   ({c=""}) => <svg className={c} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="6" y="8" width="12" height="14" rx="2"/><path d="M10 8V6a2 2 0 014 0v2"/><line x1="12" y1="12" x2="12" y2="16"/></svg>,
+};
+
+/* ── UTILS ── */
+const rp  = (n) => n ? 'Rp ' + Number(n).toLocaleString('id-ID') : 'Rp 0';
+const uid = () => Math.random().toString(36).slice(2, 11);
+const calcTotal = (b) => {
+  if (!b) return 0;
+  return (+b.transportasiPergi?.taksi||0) + (+b.transportasiPergi?.tol||0)
+       + (+b.transportasiPulang?.taksi||0) + (+b.transportasiPulang?.tol||0)
+       + (b.penginapan||[]).reduce((s,v)=>s+(+v||0),0)
+       + (+b.tiket?.pergi||0) + (+b.tiket?.pulang||0)
+       + (b.tambahanLain||[]).reduce((s,v)=>s+(+v?.jumlah||0),0);
+};
+const HARI = ['Hari Pertama','Hari Kedua','Hari Ketiga','Hari Keempat','Hari Kelima','Hari Keenam','Hari Ketujuh'];
+const DOK_ITEMS = [
+  { key: 'suratUndangan',      label: 'Surat Undangan',                side: 'L' },
+  { key: 'suratPerintahTugas', label: 'Surat Perintah Tugas',          side: 'L' },
+  { key: 'laporanPerjalanan',  label: 'Laporan Perjalanan Dinas',       side: 'L' },
+  { key: 'dokumentasiPergi',   label: 'Dokumentasi Perjalanan Dinas',   side: 'L' },
+  { key: 'buktiPenginapan',    label: 'Penginapan',                     side: 'R' },
+  { key: 'strukTaksi',         label: 'Struk Taksi / Bon Bensin',       side: 'R' },
+  { key: 'strukTol',           label: 'Struk Tol',                      side: 'R' },
+  { key: 'dokumentasiBukti',   label: 'Dokumentasi Perjalanan (Bukti)', side: 'R' },
+];
+const BLANK_DOK  = Object.fromEntries(DOK_ITEMS.map(d => [d.key, false]));
+const BLANK_FORM = {
+  nama: '', periode: '', kotaTujuan: '', status: 'proses',
+  catatan: 'Semua biaya perjalanan dinas wajib melampirkan bukti dukung',
+  dokumen: { ...BLANK_DOK },
+  biaya: { transportasiPergi: { taksi: 0, tol: 0 }, transportasiPulang: { taksi: 0, tol: 0 }, penginapan: [0], tiket: { pergi: 0, pulang: 0 }, tambahanLain: [] },
+};
+const SEED = [
+  {
+    id: uid(), nama: 'Akram Yonda Putra, S.T', periode: '18–21 Mei 2026',
+    kotaTujuan: 'Dinas PU Provinsi Sumatera Selatan', status: 'selesai',
+    catatan: 'Semua biaya perjalanan dinas wajib melampirkan bukti dukung',
+    dokumen: { suratUndangan:true, suratPerintahTugas:true, laporanPerjalanan:true, dokumentasiPergi:true, buktiPenginapan:true, strukTaksi:true, strukTol:false, dokumentasiBukti:true },
+    biaya: { transportasiPergi:{taksi:211000,tol:0}, transportasiPulang:{taksi:238000,tol:0}, penginapan:[850000,850000,850000], tiket:{pergi:1338440,pulang:1379870}, tambahanLain:[] },
+    createdAt: new Date().toISOString(),
+  },
+  {
+    id: uid(), nama: 'Amiruddin Yusuf, S.E, M.Ak', periode: '18–21 Mei 2026',
+    kotaTujuan: 'Dinas PU Provinsi Sumatera Selatan', status: 'selesai',
+    catatan: 'Semua biaya perjalanan dinas wajib melampirkan bukti dukung',
+    dokumen: { suratUndangan:true, suratPerintahTugas:true, laporanPerjalanan:true, dokumentasiPergi:true, buktiPenginapan:true, strukTaksi:true, strukTol:false, dokumentasiBukti:true },
+    biaya: { transportasiPergi:{taksi:245000,tol:0}, transportasiPulang:{taksi:244760,tol:0}, penginapan:[850000,850000,850000], tiket:{pergi:1338440,pulang:1379870}, tambahanLain:[] },
+    createdAt: new Date().toISOString(),
+  },
+];
+
+/* ── BADGE ── */
+const Badge = ({ s }) => {
+  const m = {
+    selesai: 'bg-emerald-100 text-emerald-700 ring-1 ring-emerald-200',
+    proses:  'bg-amber-100  text-amber-700  ring-1 ring-amber-200',
+    ditolak: 'bg-red-100    text-red-700    ring-1 ring-red-200',
+  };
+  const l = { selesai: '✓ Selesai', proses: '⏳ Proses', ditolak: '✗ Ditolak' };
+  return <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold ${m[s]||m.proses}`}>{l[s]||s}</span>;
+};
+
+/* ── SIDEBAR ── */
+const Sidebar = ({ page, go }) => {
+  const nav = [
+    { id:'dashboard', label:'Dashboard',    Icon:I.Home  },
+    { id:'list',      label:'Daftar Dinas', Icon:I.List  },
+    { id:'form',      label:'Tambah Baru',  Icon:I.Plus  },
+  ];
+  return (
+    <aside className="no-print fixed inset-y-0 left-0 w-56 bg-white border-r border-gray-200 flex flex-col z-40 shadow-sm">
+      {/* Brand */}
+      <div className="px-5 py-5 border-b border-gray-100">
+        <div className="flex items-center gap-3">
+          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-sky-500 to-indigo-500 flex items-center justify-center shadow-md shadow-sky-200 flex-shrink-0">
+            <I.Plane c="w-4 h-4 text-white" />
+          </div>
+          <div className="leading-tight">
+            <div className="text-sm font-extrabold text-gray-800">Dines Mulu</div>
+            <div className="text-[11px] text-gray-400">Kapan Kerja? ✈️</div>
+          </div>
+        </div>
+      </div>
+
+      {/* Nav */}
+      <nav className="flex-1 p-3 space-y-0.5">
+        {nav.map(({ id, label, Icon }) => {
+          const active = page.name === id;
+          return (
+            <button key={id} onClick={() => go({ name: id })}
+              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all
+                ${active
+                  ? 'bg-sky-50 text-sky-600 ring-1 ring-sky-200'
+                  : 'text-gray-500 hover:bg-gray-100 hover:text-gray-700'}`}>
+              <Icon c="w-4 h-4 flex-shrink-0" />
+              {label}
+            </button>
+          );
+        })}
+      </nav>
+
+      {/* Footer */}
+      <div className="p-3 border-t border-gray-100">
+        <div className="rounded-xl bg-sky-50 p-3 text-center">
+          <div className="text-xl mb-0.5">🛫</div>
+          <div className="text-[11px] text-sky-600 font-semibold">PFID Travel System</div>
+          <div className="text-[10px] text-gray-400">© 2026</div>
+        </div>
+      </div>
+    </aside>
+  );
+};
+
+/* ── DASHBOARD ── */
+const Dashboard = ({ data, go }) => {
+  const total   = data.reduce((s,d) => s + calcTotal(d.biaya), 0);
+  const selesai = data.filter(d => d.status === 'selesai').length;
+  const avg     = data.length ? Math.round(total / data.length) : 0;
+
+  const stats = [
+    { label:'Total Perjalanan', val:`${data.length} trip`, Icon:I.Plane,   g:'from-sky-500 to-blue-500',     bg:'bg-sky-50',     txt:'text-sky-600'     },
+    { label:'Total Biaya',      val:rp(total),             Icon:I.Wallet,  g:'from-violet-500 to-purple-500', bg:'bg-violet-50',  txt:'text-violet-600'  },
+    { label:'Sudah Selesai',    val:`${selesai} trip`,     Icon:I.Check,   g:'from-emerald-500 to-teal-500', bg:'bg-emerald-50', txt:'text-emerald-600' },
+    { label:'Rata-rata Biaya',  val:rp(avg),               Icon:I.TrendUp, g:'from-amber-500 to-orange-400', bg:'bg-amber-50',   txt:'text-amber-600'   },
+  ];
+
+  const cats = [
+    { icon:'🚗', label:'Transport Pergi',  val: data.reduce((s,d)=>s+(+d.biaya?.transportasiPergi?.taksi||0)+(+d.biaya?.transportasiPergi?.tol||0),0) },
+    { icon:'🏠', label:'Transport Pulang', val: data.reduce((s,d)=>s+(+d.biaya?.transportasiPulang?.taksi||0)+(+d.biaya?.transportasiPulang?.tol||0),0) },
+    { icon:'🏨', label:'Penginapan',       val: data.reduce((s,d)=>s+(d.biaya?.penginapan||[]).reduce((a,v)=>a+(+v||0),0),0) },
+    { icon:'✈️', label:'Tiket',            val: data.reduce((s,d)=>s+(+d.biaya?.tiket?.pergi||0)+(+d.biaya?.tiket?.pulang||0),0) },
+  ];
+
+  return (
+    <div className="animate-slidein space-y-6">
+      {/* Hero */}
+      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-sky-500 via-sky-600 to-indigo-600 p-8 text-white shadow-lg shadow-sky-200">
+        <div className="relative z-10">
+          <p className="text-sky-100 text-sm font-medium mb-1">Sistem Manajemen</p>
+          <h1 className="text-3xl font-extrabold leading-tight mb-2">Dines Mulu<br/>Kapan Kerja? 🛫</h1>
+          <p className="text-sky-100/80 text-sm max-w-sm mb-5">Kelola rincian biaya & kelengkapan berkas perjalanan dinas PFID secara mudah.</p>
+          <button onClick={() => go({ name:'form' })}
+            className="inline-flex items-center gap-2 bg-white text-sky-600 font-bold text-sm px-5 py-2.5 rounded-xl hover:bg-sky-50 transition shadow-md">
+            <I.Plus c="w-4 h-4" /> Tambah Perjalanan
+          </button>
+        </div>
+        <div className="absolute right-6 top-1/2 -translate-y-1/2 opacity-10 pointer-events-none">
+          <I.Plane c="w-48 h-48 text-white animate-float" />
+        </div>
+        <div className="absolute right-32 top-3 w-20 h-20 rounded-full bg-white/10 pointer-events-none" />
+        <div className="absolute left-1/2 bottom-0 w-32 h-16 rounded-t-full bg-white/5 pointer-events-none" />
+      </div>
+
+      {/* Stats */}
+      <div className="grid grid-cols-2 xl:grid-cols-4 gap-4">
+        {stats.map(({ label, val, Icon, g, bg, txt }) => (
+          <div key={label} className="card p-5 shadow-sm">
+            <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${g} flex items-center justify-center mb-3 shadow-md`}>
+              <Icon c="w-5 h-5 text-white" />
+            </div>
+            <div className="text-lg font-bold text-gray-800 leading-tight">{val}</div>
+            <div className="text-xs text-gray-400 mt-0.5">{label}</div>
+          </div>
+        ))}
+      </div>
+
+      {/* Category breakdown */}
+      <div className="grid grid-cols-2 xl:grid-cols-4 gap-3">
+        {cats.map(({ icon, label, val }) => (
+          <div key={label} className="card px-4 py-3.5 flex items-center gap-3 shadow-sm">
+            <span className="text-2xl">{icon}</span>
+            <div>
+              <div className="text-[11px] text-gray-400">{label}</div>
+              <div className="text-sm font-bold text-gray-700">{rp(val)}</div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Recent */}
+      <div className="card shadow-sm">
+        <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
+          <div className="font-semibold text-gray-700 flex items-center gap-2 text-sm">
+            <I.Luggage c="w-4 h-4 text-sky-500" /> Perjalanan Terbaru
+          </div>
+          <button onClick={() => go({ name:'list' })} className="text-sky-500 hover:text-sky-600 text-xs font-medium transition">Lihat semua →</button>
+        </div>
+        {data.length === 0 ? (
+          <div className="py-12 text-center text-gray-400">
+            <I.Plane c="w-10 h-10 mx-auto mb-2 opacity-20" />
+            <div className="text-sm">Belum ada perjalanan dinas</div>
+          </div>
+        ) : (
+          <div className="divide-y divide-gray-100">
+            {[...data].reverse().slice(0,5).map(trip => (
+              <div key={trip.id} onClick={() => go({ name:'detail', id:trip.id })}
+                className="flex items-center gap-4 px-5 py-3.5 hover:bg-sky-50/50 cursor-pointer transition">
+                <div className="w-9 h-9 rounded-xl bg-sky-100 flex items-center justify-center flex-shrink-0">
+                  <I.User c="w-4 h-4 text-sky-500" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="text-sm font-semibold text-gray-700 truncate">{trip.nama}</div>
+                  <div className="flex gap-3 text-[11px] text-gray-400 mt-0.5">
+                    <span className="flex items-center gap-1"><I.Calendar c="w-3 h-3" />{trip.periode}</span>
+                    <span className="hidden sm:flex items-center gap-1"><I.MapPin c="w-3 h-3" />{trip.kotaTujuan}</span>
+                  </div>
+                </div>
+                <div className="text-right flex-shrink-0">
+                  <div className="text-sm font-bold text-gray-800">{rp(calcTotal(trip.biaya))}</div>
+                  <div className="mt-0.5"><Badge s={trip.status} /></div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+/* ── LIST ── */
+const TripList = ({ data, go, onDelete }) => {
+  const [q, setQ] = useState('');
+  const filtered = useMemo(() =>
+    data.filter(d => [d.nama,d.periode,d.kotaTujuan].join(' ').toLowerCase().includes(q.toLowerCase())),
+    [data,q]
+  );
+
+  return (
+    <div className="animate-slidein space-y-5">
+      <div className="flex items-center justify-between">
+        <h1 className="text-xl font-bold text-gray-800">Daftar Perjalanan Dinas</h1>
+        <button onClick={() => go({ name:'form' })}
+          className="inline-flex items-center gap-2 bg-sky-500 hover:bg-sky-600 text-white text-sm font-semibold px-4 py-2 rounded-xl transition shadow-md shadow-sky-200">
+          <I.Plus c="w-4 h-4" /> Tambah
+        </button>
+      </div>
+
+      {/* Search */}
+      <div className="relative">
+        <I.Search c="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+        <input value={q} onChange={e => setQ(e.target.value)} placeholder="Cari nama, periode, atau kota tujuan…"
+          className="w-full bg-white border border-gray-200 rounded-xl pl-10 pr-4 py-2.5 text-sm text-gray-700 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-sky-300 transition shadow-sm" />
+      </div>
+
+      {filtered.length === 0 ? (
+        <div className="card py-14 text-center text-gray-400 shadow-sm">
+          <I.Plane c="w-10 h-10 mx-auto mb-2 opacity-20" />
+          <div className="text-sm">{q ? 'Tidak ada hasil ditemukan' : 'Belum ada data perjalanan dinas'}</div>
+        </div>
+      ) : (
+        <div className="space-y-3">
+          {[...filtered].reverse().map(trip => {
+            const total  = calcTotal(trip.biaya);
+            const dokOk  = Object.values(trip.dokumen).filter(Boolean).length;
+            const dokAll = Object.keys(trip.dokumen).length;
+            return (
+              <div key={trip.id} className="card card-hover p-5 shadow-sm">
+                <div className="flex items-start gap-4">
+                  <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-sky-100 to-indigo-100 flex items-center justify-center flex-shrink-0 mt-0.5">
+                    <I.Plane c="w-5 h-5 text-sky-500" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-1 flex-wrap">
+                      <span className="font-semibold text-gray-800">{trip.nama}</span>
+                      <Badge s={trip.status} />
+                    </div>
+                    <div className="flex flex-wrap gap-x-4 gap-y-1 text-[12px] text-gray-400 mb-3">
+                      <span className="flex items-center gap-1"><I.Calendar c="w-3 h-3" />{trip.periode}</span>
+                      <span className="flex items-center gap-1"><I.MapPin c="w-3 h-3" />{trip.kotaTujuan}</span>
+                      <span className="flex items-center gap-1"><I.File c="w-3 h-3" />{dokOk}/{dokAll} dokumen</span>
+                    </div>
+                    <div className="flex flex-wrap gap-1.5">
+                      {[
+                        { icon:'🚗', v:(+trip.biaya?.transportasiPergi?.taksi||0)+(+trip.biaya?.transportasiPergi?.tol||0) },
+                        { icon:'🏠', v:(+trip.biaya?.transportasiPulang?.taksi||0)+(+trip.biaya?.transportasiPulang?.tol||0) },
+                        { icon:'🏨', v:(trip.biaya?.penginapan||[]).reduce((s,x)=>s+(+x||0),0) },
+                        { icon:'✈️', v:(+trip.biaya?.tiket?.pergi||0)+(+trip.biaya?.tiket?.pulang||0) },
+                      ].filter(x => x.v > 0).map((x,i) => (
+                        <span key={i} className="inline-flex items-center gap-1 bg-gray-100 text-gray-600 text-[11px] px-2 py-0.5 rounded-lg">
+                          {x.icon} {rp(x.v)}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                  <div className="text-right flex-shrink-0 flex flex-col items-end gap-2">
+                    <div className="text-lg font-bold text-gray-800">{rp(total)}</div>
+                    <div className="flex gap-1.5">
+                      <button title="Detail" onClick={() => go({ name:'detail', id:trip.id })}
+                        className="p-2 rounded-lg bg-gray-100 hover:bg-sky-100 hover:text-sky-600 text-gray-500 transition">
+                        <I.Eye c="w-3.5 h-3.5" />
+                      </button>
+                      <button title="Edit" onClick={() => go({ name:'form', id:trip.id })}
+                        className="p-2 rounded-lg bg-gray-100 hover:bg-amber-100 hover:text-amber-600 text-gray-500 transition">
+                        <I.Edit c="w-3.5 h-3.5" />
+                      </button>
+                      <button title="Hapus" onClick={() => { if(confirm(`Hapus data "${trip.nama}"?`)) onDelete(trip.id); }}
+                        className="p-2 rounded-lg bg-gray-100 hover:bg-red-100 hover:text-red-500 text-gray-500 transition">
+                        <I.Trash c="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+};
+
+/* ── FORM ── */
+const TripForm = ({ data, id, onSave, go }) => {
+  const existing = id ? data.find(d => d.id === id) : null;
+  const [form, setForm] = useState(() =>
+    existing ? JSON.parse(JSON.stringify(existing))
+             : JSON.parse(JSON.stringify({ ...BLANK_FORM, id: uid(), createdAt: new Date().toISOString() }))
+  );
+
+  const set = (path, val) => setForm(prev => {
+    const next = JSON.parse(JSON.stringify(prev));
+    const parts = path.split('.');
+    let cur = next;
+    for (let i = 0; i < parts.length - 1; i++) cur = cur[parts[i]];
+    cur[parts[parts.length - 1]] = val;
+    return next;
+  });
+
+  const totalBiaya = calcTotal(form.biaya);
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (!form.nama.trim() || !form.periode.trim() || !form.kotaTujuan.trim()) {
+      alert('Nama, Periode, dan Kota Tujuan wajib diisi!');
+      return;
+    }
+    onSave(form);
+    go({ name:'list' });
+  };
+
+  const inputCls = "w-full bg-white border border-gray-300 rounded-lg px-3 py-2.5 text-sm text-gray-700 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-sky-300 transition";
+  const Lbl = ({ children }) => <label className="block text-[11px] font-semibold text-gray-500 mb-1 uppercase tracking-wide">{children}</label>;
+  const NumIn = ({ label, value, onChange }) => (
+    <div>
+      {label && <Lbl>{label}</Lbl>}
+      <div className="relative">
+        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs font-medium">Rp</span>
+        <input type="number" value={value||''} onChange={e => onChange(+e.target.value)}
+          className="w-full bg-white border border-gray-300 rounded-lg pl-8 pr-3 py-2.5 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-sky-300 transition" />
+      </div>
+    </div>
+  );
+  const Chk = ({ checked, onChange, label }) => (
+    <label className="flex items-center gap-2.5 cursor-pointer group select-none">
+      <div onClick={onChange}
+        className={`w-5 h-5 rounded-md flex items-center justify-center border-2 transition-all flex-shrink-0
+          ${checked ? 'bg-sky-500 border-sky-500 shadow-sm shadow-sky-300' : 'border-gray-300 bg-white group-hover:border-sky-400'}`}>
+        {checked && <I.Check c="w-3 h-3 text-white" />}
+      </div>
+      <span className="text-sm text-gray-600 group-hover:text-gray-800 transition">{label}</span>
+    </label>
+  );
+  const Card = ({ title, children }) => (
+    <div className="card p-5 shadow-sm space-y-4">
+      {title && <h3 className="font-semibold text-gray-700 text-sm border-b border-gray-100 pb-3">{title}</h3>}
+      {children}
+    </div>
+  );
+  const Sub = ({ label, children }) => (
+    <div className="bg-gray-50 border border-gray-200 rounded-xl p-4 space-y-3">
+      <div className="text-xs font-bold text-gray-500 uppercase tracking-wider">{label}</div>
+      {children}
+    </div>
+  );
+
+  return (
+    <div className="animate-slidein max-w-2xl space-y-4 pb-10">
+      <div className="flex items-center gap-3 mb-2">
+        <button onClick={() => go({ name:'list' })}
+          className="p-2 bg-white border border-gray-200 hover:bg-gray-100 rounded-xl text-gray-500 transition shadow-sm">
+          <I.ArrowLeft c="w-4 h-4" />
+        </button>
+        <h1 className="text-xl font-bold text-gray-800">{existing ? 'Edit Perjalanan Dinas' : 'Tambah Perjalanan Baru'}</h1>
+      </div>
+
+      <form onSubmit={handleSubmit} className="space-y-4">
+        {/* Info */}
+        <Card title="👤 Informasi Perjalanan">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div className="md:col-span-2">
+              <Lbl>Nama Lengkap *</Lbl>
+              <input type="text" value={form.nama} onChange={e=>set('nama',e.target.value)} placeholder="Nama + Gelar" className={inputCls} />
+            </div>
+            <div>
+              <Lbl>Periode *</Lbl>
+              <input type="text" value={form.periode} onChange={e=>set('periode',e.target.value)} placeholder="18–21 Mei 2026" className={inputCls} />
+            </div>
+            <div>
+              <Lbl>Status</Lbl>
+              <select value={form.status} onChange={e=>set('status',e.target.value)} className={inputCls}>
+                <option value="proses">⏳ Proses</option>
+                <option value="selesai">✓ Selesai</option>
+                <option value="ditolak">✗ Ditolak</option>
+              </select>
+            </div>
+            <div className="md:col-span-2">
+              <Lbl>Kota / Instansi Tujuan *</Lbl>
+              <input type="text" value={form.kotaTujuan} onChange={e=>set('kotaTujuan',e.target.value)} placeholder="Dinas PU Provinsi …" className={inputCls} />
+            </div>
+          </div>
+        </Card>
+
+        {/* Dokumen */}
+        <Card title="📋 Kelengkapan Dokumen">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+            {[['L','Perjalanan Dinas'],['R','Bukti Perjalanan']].map(([side,heading]) => (
+              <div key={side}>
+                <div className="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-3">{heading}</div>
+                <div className="space-y-2.5">
+                  {DOK_ITEMS.filter(d=>d.side===side).map(dok => (
+                    <Chk key={dok.key} checked={form.dokumen[dok.key]}
+                      onChange={() => set(`dokumen.${dok.key}`, !form.dokumen[dok.key])}
+                      label={dok.label} />
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        </Card>
+
+        {/* Biaya */}
+        <Card title="💰 Rincian Biaya">
+          <Sub label="🚗 1. Transportasi Pergi">
+            <div className="grid grid-cols-2 gap-3">
+              <NumIn label="Taksi / Bensin" value={form.biaya.transportasiPergi.taksi} onChange={v=>set('biaya.transportasiPergi.taksi',v)} />
+              <NumIn label="Tol Pergi"      value={form.biaya.transportasiPergi.tol}   onChange={v=>set('biaya.transportasiPergi.tol',v)} />
+            </div>
+            <div className="text-right text-xs text-sky-600 font-semibold">
+              Subtotal: {rp((+form.biaya.transportasiPergi.taksi||0)+(+form.biaya.transportasiPergi.tol||0))}
+            </div>
+          </Sub>
+
+          <Sub label="🏠 2. Transportasi Pulang">
+            <div className="grid grid-cols-2 gap-3">
+              <NumIn label="Taksi / Bensin" value={form.biaya.transportasiPulang.taksi} onChange={v=>set('biaya.transportasiPulang.taksi',v)} />
+              <NumIn label="Tol Pulang"     value={form.biaya.transportasiPulang.tol}   onChange={v=>set('biaya.transportasiPulang.tol',v)} />
+            </div>
+            <div className="text-right text-xs text-sky-600 font-semibold">
+              Subtotal: {rp((+form.biaya.transportasiPulang.taksi||0)+(+form.biaya.transportasiPulang.tol||0))}
+            </div>
+          </Sub>
+
+          <Sub label="🏨 3. Penginapan">
+            <div className="space-y-2">
+              {form.biaya.penginapan.map((val,i) => (
+                <div key={i} className="flex items-center gap-2">
+                  <div className="text-xs text-gray-400 w-24 flex-shrink-0">{HARI[i]||`Hari ke-${i+1}`}</div>
+                  <div className="flex-1 relative">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs font-medium">Rp</span>
+                    <input type="number" value={val||''} onChange={e=>{
+                      const arr=[...form.biaya.penginapan]; arr[i]=+e.target.value; set('biaya.penginapan',arr);
+                    }} className="w-full bg-white border border-gray-300 rounded-lg pl-8 pr-3 py-2 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-sky-300" />
+                  </div>
+                  {form.biaya.penginapan.length > 1 && (
+                    <button type="button" onClick={() => set('biaya.penginapan', form.biaya.penginapan.filter((_,j)=>j!==i))}
+                      className="p-1.5 text-red-400 hover:bg-red-50 rounded-lg transition flex-shrink-0">
+                      <I.X c="w-3.5 h-3.5" />
+                    </button>
+                  )}
+                </div>
+              ))}
+            </div>
+            <div className="flex items-center justify-between">
+              <button type="button" onClick={() => set('biaya.penginapan',[...form.biaya.penginapan,0])}
+                className="text-xs flex items-center gap-1 text-sky-500 hover:text-sky-600 font-medium transition">
+                <I.Plus c="w-3 h-3" /> Tambah Hari
+              </button>
+              <div className="text-xs text-sky-600 font-semibold">Subtotal: {rp(form.biaya.penginapan.reduce((s,v)=>s+(+v||0),0))}</div>
+            </div>
+          </Sub>
+
+          <Sub label="✈️ 4. Tiket Bus / Pesawat">
+            <div className="grid grid-cols-2 gap-3">
+              <NumIn label="Harga Pergi"  value={form.biaya.tiket.pergi}  onChange={v=>set('biaya.tiket.pergi',v)} />
+              <NumIn label="Harga Pulang" value={form.biaya.tiket.pulang} onChange={v=>set('biaya.tiket.pulang',v)} />
+            </div>
+            <div className="text-right text-xs text-sky-600 font-semibold">
+              Subtotal: {rp((+form.biaya.tiket.pergi||0)+(+form.biaya.tiket.pulang||0))}
+            </div>
+          </Sub>
+
+          <Sub label="💼 Biaya Lain-lain (opsional)">
+            {(form.biaya.tambahanLain||[]).length === 0
+              ? <div className="text-xs text-gray-400 text-center py-1">— Tidak ada biaya tambahan —</div>
+              : <div className="space-y-2">
+                  {(form.biaya.tambahanLain||[]).map((item,i) => (
+                    <div key={i} className="flex items-center gap-2">
+                      <input type="text" value={item.keterangan} onChange={e=>{
+                        const arr=JSON.parse(JSON.stringify(form.biaya.tambahanLain)); arr[i].keterangan=e.target.value; set('biaya.tambahanLain',arr);
+                      }} placeholder="Keterangan"
+                        className="flex-1 bg-white border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-700 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-sky-300" />
+                      <div className="w-36 relative">
+                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs font-medium">Rp</span>
+                        <input type="number" value={item.jumlah||''} onChange={e=>{
+                          const arr=JSON.parse(JSON.stringify(form.biaya.tambahanLain)); arr[i].jumlah=+e.target.value; set('biaya.tambahanLain',arr);
+                        }} className="w-full bg-white border border-gray-300 rounded-lg pl-8 pr-3 py-2 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-sky-300" />
+                      </div>
+                      <button type="button" onClick={() => set('biaya.tambahanLain',form.biaya.tambahanLain.filter((_,j)=>j!==i))}
+                        className="p-1.5 text-red-400 hover:bg-red-50 rounded-lg transition flex-shrink-0">
+                        <I.X c="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+            }
+            <button type="button" onClick={() => set('biaya.tambahanLain',[...(form.biaya.tambahanLain||[]),{keterangan:'',jumlah:0}])}
+              className="text-xs flex items-center gap-1 text-sky-500 hover:text-sky-600 font-medium transition mt-1">
+              <I.Plus c="w-3 h-3" /> Tambah Baris
+            </button>
+          </Sub>
+
+          {/* Grand total */}
+          <div className="flex items-center justify-between bg-sky-50 border border-sky-200 rounded-xl px-5 py-4">
+            <div className="font-bold text-sky-800 text-sm">TOTAL BIAYA PERJALANAN DINAS</div>
+            <div className="text-xl font-extrabold text-sky-600">{rp(totalBiaya)}</div>
+          </div>
+        </Card>
+
+        {/* Catatan */}
+        <Card title="📝 Catatan">
+          <textarea value={form.catatan} onChange={e=>set('catatan',e.target.value)} rows={2}
+            className="w-full bg-white border border-gray-300 rounded-lg px-3 py-2.5 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-sky-300 transition resize-none" />
+        </Card>
+
+        <div className="flex gap-3">
+          <button type="button" onClick={() => go({ name:'list' })}
+            className="flex-1 bg-white border border-gray-300 hover:bg-gray-50 text-gray-600 font-medium text-sm py-3 rounded-xl transition shadow-sm">
+            Batal
+          </button>
+          <button type="submit"
+            className="flex-1 bg-sky-500 hover:bg-sky-600 text-white font-semibold text-sm py-3 rounded-xl transition shadow-md shadow-sky-200">
+            {existing ? '💾 Simpan Perubahan' : '✅ Tambah Perjalanan'}
+          </button>
+        </div>
+      </form>
+    </div>
+  );
+};
+
+/* ── DETAIL ── */
+const TripDetail = ({ data, id, go }) => {
+  const trip = data.find(d => d.id === id);
+  if (!trip) return (
+    <div className="text-center py-20 text-gray-400">
+      <I.Plane c="w-10 h-10 mx-auto mb-2 opacity-20" />
+      <div className="text-sm">Data tidak ditemukan.</div>
+      <button onClick={() => go({ name:'list' })} className="mt-3 text-sky-500 text-sm hover:underline">← Kembali</button>
+    </div>
+  );
+
+  const total  = calcTotal(trip.biaya);
+  const dokOk  = Object.values(trip.dokumen).filter(Boolean).length;
+  const dokAll = Object.keys(trip.dokumen).length;
+
+  const sections = [
+    {
+      no:1, icon:'🚗', title:'Biaya Transportasi Pergi',
+      rows:[ { label:'Taksi / Bensin', val:trip.biaya?.transportasiPergi?.taksi, bukti:'Print Bukti' }, { label:'Tol Pergi', val:trip.biaya?.transportasiPergi?.tol, bukti:'' } ],
+      sub:(+trip.biaya?.transportasiPergi?.taksi||0)+(+trip.biaya?.transportasiPergi?.tol||0),
+    },
+    {
+      no:2, icon:'🏠', title:'Biaya Transportasi Pulang',
+      rows:[ { label:'Taksi / Bensin', val:trip.biaya?.transportasiPulang?.taksi, bukti:'Print Bukti' }, { label:'Tol Pulang', val:trip.biaya?.transportasiPulang?.tol, bukti:'' } ],
+      sub:(+trip.biaya?.transportasiPulang?.taksi||0)+(+trip.biaya?.transportasiPulang?.tol||0),
+    },
+    {
+      no:3, icon:'🏨', title:'Biaya Penginapan',
+      rows:(trip.biaya?.penginapan||[]).map((v,i)=>({ label:HARI[i]||`Hari ke-${i+1}`, val:v, bukti:'Print Bukti' })),
+      sub:(trip.biaya?.penginapan||[]).reduce((s,v)=>s+(+v||0),0),
+    },
+    {
+      no:4, icon:'✈️', title:'Biaya Tiket Bus / Pesawat',
+      rows:[ { label:'Harga Pergi', val:trip.biaya?.tiket?.pergi, bukti:'Print Bukti' }, { label:'Harga Pulang', val:trip.biaya?.tiket?.pulang, bukti:'Print Bukti' } ],
+      sub:(+trip.biaya?.tiket?.pergi||0)+(+trip.biaya?.tiket?.pulang||0),
+    },
+    ...(trip.biaya?.tambahanLain?.length ? [{
+      no:5, icon:'💼', title:'Biaya Lain-lain',
+      rows:trip.biaya.tambahanLain.map(t=>({ label:t.keterangan, val:t.jumlah, bukti:'' })),
+      sub:trip.biaya.tambahanLain.reduce((s,t)=>s+(+t.jumlah||0),0),
+    }] : []),
+  ];
+
+  return (
+    <div className="animate-slidein max-w-2xl space-y-4 pb-10 print-area">
+      {/* Toolbar */}
+      <div className="no-print flex items-center justify-between mb-2">
+        <div className="flex items-center gap-3">
+          <button onClick={() => go({ name:'list' })}
+            className="p-2 bg-white border border-gray-200 hover:bg-gray-100 rounded-xl text-gray-500 transition shadow-sm">
+            <I.ArrowLeft c="w-4 h-4" />
+          </button>
+          <h1 className="text-xl font-bold text-gray-800">Detail Perjalanan Dinas</h1>
+        </div>
+        <div className="flex gap-2">
+          <button onClick={() => window.print()}
+            className="inline-flex items-center gap-2 bg-white border border-gray-200 hover:bg-gray-100 text-gray-600 text-sm font-medium px-4 py-2 rounded-xl transition shadow-sm">
+            <I.Print c="w-4 h-4" /> Print
+          </button>
+          <button onClick={() => go({ name:'form', id:trip.id })}
+            className="inline-flex items-center gap-2 bg-sky-500 hover:bg-sky-600 text-white text-sm font-semibold px-4 py-2 rounded-xl transition shadow-md shadow-sky-200">
+            <I.Edit c="w-4 h-4" /> Edit
+          </button>
+        </div>
+      </div>
+
+      {/* Header */}
+      <div className="card p-6 bg-gradient-to-br from-sky-50 to-indigo-50 border-sky-200 shadow-sm">
+        <div className="text-center mb-5">
+          <div className="font-extrabold text-gray-800 tracking-wide">KELENGKAPAN BERKAS PERJALANAN DINAS</div>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4">
+          {[
+            { Icon:I.User,     label:'Nama',    val:trip.nama },
+            { Icon:I.Calendar, label:'Periode', val:trip.periode },
+            { Icon:I.MapPin,   label:'Tujuan',  val:trip.kotaTujuan },
+          ].map(({ Icon, label, val }) => (
+            <div key={label} className="flex items-start gap-2">
+              <Icon c="w-4 h-4 text-sky-500 mt-0.5 flex-shrink-0" />
+              <div>
+                <div className="text-[10px] text-gray-400 uppercase tracking-wide">{label}</div>
+                <div className="text-sm font-semibold text-gray-700">{val}</div>
+              </div>
+            </div>
+          ))}
+        </div>
+        <div className="flex items-center justify-between pt-3 border-t border-sky-200">
+          <div className="text-xs text-gray-500">
+            Dokumen: <span className={dokOk===dokAll ? 'text-emerald-600 font-bold' : 'text-amber-600 font-bold'}>{dokOk}/{dokAll} lengkap</span>
+          </div>
+          <Badge s={trip.status} />
+        </div>
+      </div>
+
+      {/* Dokumen */}
+      <div className="card p-5 shadow-sm">
+        <h3 className="font-semibold text-gray-700 text-sm mb-4 flex items-center gap-2 pb-3 border-b border-gray-100">
+          <I.File c="w-4 h-4 text-sky-500" /> Kelengkapan Dokumen
+        </h3>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+          {[['L','Perjalanan Dinas'],['R','Bukti Perjalanan']].map(([side,heading]) => (
+            <div key={side}>
+              <div className="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-3">{heading}</div>
+              <div className="space-y-2">
+                {DOK_ITEMS.filter(d=>d.side===side).map(dok => (
+                  <div key={dok.key} className="flex items-center gap-2.5">
+                    <div className={`w-5 h-5 rounded-md flex items-center justify-center flex-shrink-0
+                      ${trip.dokumen[dok.key] ? 'bg-emerald-500 shadow-sm shadow-emerald-200' : 'bg-gray-100 ring-1 ring-gray-200'}`}>
+                      {trip.dokumen[dok.key]
+                        ? <I.Check c="w-3 h-3 text-white" />
+                        : <I.X c="w-3 h-3 text-gray-400" />}
+                    </div>
+                    <span className={`text-sm ${trip.dokumen[dok.key] ? 'text-gray-700' : 'text-gray-400 line-through'}`}>
+                      {dok.label}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Biaya */}
+      <div className="card p-5 shadow-sm">
+        <h3 className="font-semibold text-gray-700 text-sm mb-4 flex items-center gap-2 pb-3 border-b border-gray-100">
+          <I.Wallet c="w-4 h-4 text-sky-500" /> Rincian Biaya
+        </h3>
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b border-gray-200">
+                <th className="text-left text-[11px] text-gray-400 pb-2 w-7 font-semibold">No</th>
+                <th className="text-left text-[11px] text-gray-400 pb-2 font-semibold">Perincian Biaya</th>
+                <th className="text-right text-[11px] text-gray-400 pb-2 font-semibold">Jumlah</th>
+                <th className="text-right text-[11px] text-gray-400 pb-2 font-semibold pl-4 hidden sm:table-cell">Bukti Dukung</th>
+              </tr>
+            </thead>
+            <tbody>
+              {sections.map(sec => (
+                <React.Fragment key={sec.no}>
+                  <tr className="bg-gray-50">
+                    <td className="py-2.5 pl-1 text-gray-500 font-bold align-top rounded-l">{sec.no}</td>
+                    <td colSpan={3} className="py-2.5 rounded-r">
+                      <div className="font-semibold text-gray-700">{sec.icon} {sec.title}</div>
+                      <div className="text-xs text-gray-400 mt-0.5 pl-1">Total: <span className="text-sky-600 font-semibold">{rp(sec.sub)}</span></div>
+                    </td>
+                  </tr>
+                  {sec.rows.filter(r => r.val > 0).map((row, ri) => (
+                    <tr key={ri} className="border-t border-gray-100">
+                      <td></td>
+                      <td className="py-1.5 pl-5 text-gray-500 text-xs">— {row.label}</td>
+                      <td className="py-1.5 text-right text-gray-600 text-xs font-medium">{rp(row.val)}</td>
+                      <td className="py-1.5 text-right text-sky-400 text-xs pl-4 hidden sm:table-cell">{row.bukti}</td>
+                    </tr>
+                  ))}
+                </React.Fragment>
+              ))}
+            </tbody>
+            <tfoot>
+              <tr className="border-t-2 border-sky-300">
+                <td colSpan={2} className="pt-4 pb-2 font-bold text-gray-800">TOTAL BIAYA PERJALANAN DINAS</td>
+                <td className="pt-4 pb-2 text-right font-extrabold text-xl text-sky-600">{rp(total)}</td>
+                <td></td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+      </div>
+
+      {/* Catatan */}
+      {trip.catatan && (
+        <div className="card p-5 shadow-sm text-sm">
+          <div className="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">Catatan</div>
+          <div className="text-gray-600">{trip.catatan}</div>
+        </div>
+      )}
+
+      {/* Tanda tangan */}
+      <div className="card p-5 shadow-sm">
+        <div className="flex justify-end">
+          <div className="text-center min-w-52">
+            <div className="text-sm text-gray-500 mb-14">Jakarta, {trip.periode}</div>
+            <div className="text-xs text-gray-400 mb-1">Pelaksana Perjalanan Dinas</div>
+            <div className="border-t border-gray-300 pt-1 text-sm font-semibold text-gray-700">({trip.nama})</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+/* ── APP ── */
+const App = () => {
+  const [data, setData] = useState(() => {
+    try { const s = localStorage.getItem('pfid_v1'); return s ? JSON.parse(s) : SEED; }
+    catch { return SEED; }
+  });
+  const [page, setPage] = useState({ name:'dashboard' });
+
+  useEffect(() => { localStorage.setItem('pfid_v1', JSON.stringify(data)); }, [data]);
+
+  const onSave = (trip) => setData(prev => {
+    const idx = prev.findIndex(d => d.id === trip.id);
+    if (idx >= 0) { const n=[...prev]; n[idx]=trip; return n; }
+    return [...prev, trip];
+  });
+  const onDelete = (id) => setData(prev => prev.filter(d => d.id !== id));
+  const go = (p) => setPage(p);
+
+  const content = () => {
+    switch (page.name) {
+      case 'dashboard': return <Dashboard data={data} go={go} />;
+      case 'list':      return <TripList  data={data} go={go} onDelete={onDelete} />;
+      case 'form':      return <TripForm  data={data} id={page.id} onSave={onSave} go={go} />;
+      case 'detail':    return <TripDetail data={data} id={page.id} go={go} />;
+      default:          return <Dashboard data={data} go={go} />;
+    }
+  };
+
+  return (
+    <div className="flex min-h-screen" style={{background:'#f1f5f9'}}>
+      <Sidebar page={page} go={go} />
+      <main className="ml-56 flex-1 p-6 lg:p-8 overflow-x-hidden min-h-screen">
+        {content()}
+      </main>
+    </div>
+  );
+};
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>
